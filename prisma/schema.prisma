@@ -11,17 +11,84 @@ datasource db {
 }
 
 model User {
-  id           String      @id @default(uuid())
-  username     String
-  email        String      @unique
-  password     String
-  role         USER_ROLE   @default(END_USER)
-  status       USER_STATUS @default(ACTIVE)
-  refreshToken String?     @map("refresh_token")
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt() @map("updated_at")
+  id              String            @id @default(uuid())
+  username        String
+  email           String            @unique
+  password        String
+  role            USER_ROLE         @default(END_USER)
+  status          USER_STATUS       @default(ACTIVE)
+  invitaionStatus INVITATION_STATUS @default(PENDING)
+  refreshToken    String?           @map("refresh_token")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt() @map("updated_at")
+
+  userOnTeam UserOnTeam?
 
   @@map("users")
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userOnTeam UserOnTeam?
+
+  @@map("teams")
+}
+
+model UserOnTeam {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  teamId    String   @unique
+  team      Team     @relation(fields: [teamId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  @@map("user_on_Team")
+}
+
+model FutsalStadium {
+  id            String          @id @default(uuid())
+  name          String
+  townShipId    String
+  isBookingFull Boolean         @default(false)
+  rating        Int
+  location      TownShip        @relation(fields: [townShipId], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  booking       BookingRecord[]
+
+  @@map("futsal_stadium")
+}
+
+model BookingRecord {
+  id           String         @id @default(uuid())
+  stadiumId    String
+  stadium      FutsalStadium  @relation(fields: [stadiumId], references: [id])
+  code         Int
+  timeDuration Int
+  charges      Int
+  startTime    DateTime
+  endTime      DateTime
+  status       BOOKING_STATUS @default(ACTIVE)
+  Date         DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt()
+
+  @@map("booking_records")
+}
+
+model TownShip {
+  id        String          @id @default(uuid())
+  name      String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt()
+  stadium   FutsalStadium[]
+
+  @@map("townships")
 }
 
 model file {
@@ -43,4 +110,16 @@ enum USER_STATUS {
   ACTIVE
   SUSPENDED
   OFFLINE
+}
+
+enum BOOKING_STATUS {
+  ACTIVE
+  CANCELED
+  EXPIRED
+}
+
+enum INVITATION_STATUS {
+  ACCEPTED
+  PENDING
+  REJECTED
 }

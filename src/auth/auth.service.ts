@@ -55,8 +55,6 @@ export class AuthService {
   }
 
   async login(dto: LoginUserInput): Promise<LoginUserResponse> {
-    console.log('enter');
-
     try {
       const { email, password } = dto;
 
@@ -66,6 +64,7 @@ export class AuthService {
           email: email,
         },
       });
+      if (!isUserExist) throw new UnauthorizedException('wrong credentials');
 
       const isPwMatch = await bcrypt.compare(password, isUserExist.password);
       if (!isPwMatch) throw new UnauthorizedException('Credentials not valid');
@@ -96,6 +95,31 @@ export class AuthService {
     }
   }
 
+  async logOut(userId: string) {
+    try {
+      const user = await this.prisma.user.findFirstOrThrow({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (!user) throw new UnauthorizedException('wrong user!');
+
+      await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          refreshToken: null,
+        },
+      });
+
+      return;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async getAll(): Promise<RegisterUserResponse[] | []> {
     try {
       const allActiveUsers: RegisterUserResponse[] | [] =
@@ -115,7 +139,6 @@ export class AuthService {
           },
         });
 
-      console.log(allActiveUsers);
       return allActiveUsers;
     } catch (error) {
       throw error;
