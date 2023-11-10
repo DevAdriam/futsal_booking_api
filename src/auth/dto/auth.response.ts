@@ -1,5 +1,5 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { UserStatus } from '@prisma/client';
+import { USER_STATUS } from '@prisma/client';
 import { UserModel } from 'src/models/user.model';
 
 @ObjectType({ description: 'register user response' })
@@ -14,7 +14,7 @@ export class RegisterUserResponse {
   email: string;
 
   @Field(() => String)
-  status: UserStatus;
+  status: USER_STATUS;
 
   @Field(() => String, { nullable: true })
   refreshToken: string;
