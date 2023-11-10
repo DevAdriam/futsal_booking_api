@@ -4,15 +4,20 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RegisterUserResponse } from './dto/auth.response';
+import { LoginUserResponse, RegisterUserResponse } from './dto/auth.response';
 import { PrismaService } from 'src/prisma.service';
-import { RegisterUserInput } from './dto/auth.input';
+import { LoginUserInput, RegisterUserInput } from './dto/auth.input';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { UserModel } from 'src/models/user.model';
 
 const SALT_ROUNDS = 10;
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
   async register(dto: RegisterUserInput) {
     const userAlrExist = await this.prisma.user.findFirst({
       where: {
@@ -44,6 +49,48 @@ export class AuthService {
     }
   }
 
+  async login(dto: LoginUserInput): Promise<LoginUserResponse> {
+    console.log('enter');
+
+    try {
+      const { email, password } = dto;
+
+      const isUserExist = await this.prisma.user.findUnique({
+        where: {
+          status: 'ACTIVE',
+          email: email,
+        },
+      });
+
+      const isPwMatch = await bcrypt.compare(password, isUserExist.password);
+      if (!isPwMatch) throw new UnauthorizedException('Credentials not valid');
+
+      const tokens: { accessToken: string; refreshToken: string } =
+        await this.generateTokens({
+          id: isUserExist.id,
+          email: isUserExist.email,
+        });
+
+      const updateUser = await this.prisma.user.update({
+        where: {
+          id: isUserExist.id,
+        },
+        data: {
+          status: 'ACTIVE',
+          refreshToken: tokens?.refreshToken,
+        },
+      });
+
+      return {
+        user: updateUser,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      };
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async getAll(): Promise<RegisterUserResponse[] | []> {
     try {
       const allActiveUsers: RegisterUserResponse[] | [] =
@@ -58,6 +105,7 @@ export class AuthService {
             username: true,
             status: true,
             id: true,
+            refreshToken: true,
           },
         });
 
@@ -69,4 +117,26 @@ export class AuthService {
   }
 
   async update(dto: RegisterUserInput) {}
+
+  private async generateTokens({
+    id,
+    email,
+  }): Promise<{ accessToken: string; refreshToken: string }> {
+    const payload: { id: string; email: string } = { id, email };
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_SECRET,
+      expiresIn: '1d',
+    });
+
+    const refreshToken = await this.jwtService.signAsync(
+      { id: id },
+      {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: '7d',
+      },
+    );
+
+    return { accessToken, refreshToken };
+  }
 }

@@ -2,7 +2,19 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input LoginUserInput {
+  email: String!
+  password: String!
+}
+
+type LoginUserResponse {
+  accessToken: String!
+  refreshToken: String!
+  user: UserModel!
+}
+
 type Mutation {
+  LoginUser(dto: LoginUserInput!): LoginUserResponse!
   RegisterUser(dto: RegisterUserInput!): UserModel!
   UpdateUser(dto: RegisterUserInput!): UserModel!
 }
@@ -22,6 +34,7 @@ input RegisterUserInput {
 type RegisterUserResponse {
   email: String!
   id: String!
+  refreshToken: String
   status: String!
   username: String!
 }
@@ -29,6 +42,5 @@ type RegisterUserResponse {
 type UserModel {
   email: String!
   id: ID!
-  phone: Float!
   username: String!
 }

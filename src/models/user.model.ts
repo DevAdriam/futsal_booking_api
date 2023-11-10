@@ -10,7 +10,4 @@ export class UserModel {
 
   @Field(() => String)
   email: string;
-
-  @Field(() => Number)
-  phone: number;
 }
