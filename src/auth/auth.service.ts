@@ -2,11 +2,16 @@ import {
   BadRequestException,
   HttpException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { LoginUserResponse, RegisterUserResponse } from './dto/auth.response';
 import { PrismaService } from 'src/prisma.service';
-import { LoginUserInput, RegisterUserInput } from './dto/auth.input';
+import {
+  LoginUserInput,
+  RegisterUserInput,
+  UpdateUserInput,
+} from './dto/auth.input';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UserModel } from 'src/models/user.model';
@@ -103,6 +108,7 @@ export class AuthService {
           select: {
             email: true,
             username: true,
+            role: true,
             status: true,
             id: true,
             refreshToken: true,
@@ -116,7 +122,33 @@ export class AuthService {
     }
   }
 
-  async update(dto: RegisterUserInput) {}
+  async update(dto: UpdateUserInput) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          email: dto.email,
+        },
+      });
+
+      if (!user) throw new NotFoundException('User not found');
+
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          email: dto.email,
+        },
+        data: {
+          email: dto.email,
+          username: dto.username,
+          status: dto.status,
+          role: dto.role,
+        },
+      });
+
+      return updatedUser;
+    } catch (err) {
+      throw err;
+    }
+  }
 
   private async generateTokens({
     id,

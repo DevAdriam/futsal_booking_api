@@ -16,7 +16,7 @@ type LoginUserResponse {
 type Mutation {
   LoginUser(dto: LoginUserInput!): LoginUserResponse!
   RegisterUser(dto: RegisterUserInput!): UserModel!
-  UpdateUser(dto: RegisterUserInput!): UserModel!
+  UpdateUser(dto: UpdateUserInput!): UpdateUserResponse!
 }
 
 type Query {
@@ -35,8 +35,27 @@ type RegisterUserResponse {
   email: String!
   id: String!
   refreshToken: String
+  role: String!
   status: String!
   username: String!
+}
+
+input UpdateUserInput {
+  email: String
+  id: String!
+  password: String
+  role: String!
+  status: String!
+  username: String
+}
+
+type UpdateUserResponse {
+  email: String
+  id: String
+  refreshToken: String
+  role: String
+  status: String
+  username: String
 }
 
 type UserModel {

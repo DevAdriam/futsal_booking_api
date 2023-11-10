@@ -1,5 +1,5 @@
-import { Field, ObjectType } from '@nestjs/graphql';
-import { USER_STATUS } from '@prisma/client';
+import { Field, ObjectType, PartialType } from '@nestjs/graphql';
+import { USER_ROLE, USER_STATUS } from '@prisma/client';
 import { UserModel } from 'src/models/user.model';
 
 @ObjectType({ description: 'register user response' })
@@ -12,6 +12,9 @@ export class RegisterUserResponse {
 
   @Field(() => String)
   email: string;
+
+  @Field(() => String)
+  role: USER_ROLE;
 
   @Field(() => String)
   status: USER_STATUS;
@@ -35,3 +38,6 @@ export class LoginUserResponse {
   @Field(() => String)
   refreshToken: string;
 }
+
+@ObjectType()
+export class UpdateUserResponse extends PartialType(RegisterUserResponse) {}
