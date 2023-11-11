@@ -15,7 +15,7 @@ model User {
   username        String
   email           String?           @unique
   phone           String?
-  otp             Int
+  otp             Int?
   isUsed          Boolean           @default(false)
   password        String
   role            USER_ROLE         @default(END_USER)

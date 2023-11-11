@@ -31,7 +31,14 @@ export class AuthService {
   async register(dto: RegisterUserInput) {
     const userAlrExist = await this.prisma.user.findFirst({
       where: {
-        email: dto.email,
+        OR: [
+          {
+            email: dto.email,
+          },
+          {
+            phone: dto.phone,
+          },
+        ],
       },
     });
 
@@ -40,19 +47,13 @@ export class AuthService {
     }
 
     try {
-      const { username, email, password, phone } = dto;
-      if (!username || !email || !password || !phone)
-        throw new BadRequestException();
-
-      const hashPw = await bcrypt.hash(password, SALT_ROUNDS);
+      const hashPw = await bcrypt.hash(dto.password, SALT_ROUNDS);
       const newUser = await this.prisma.user.create({
         data: {
           username: dto.username,
           email: dto.email,
           password: hashPw,
           phone: dto.phone,
-          otp: 123456,
-          isUsed: true,
         },
       });
 
@@ -71,7 +72,17 @@ export class AuthService {
       });
 
       if (!findUser) throw new UnauthorizedException('user not found');
-      const otpCode = Math.floor(Math.random() * 90000) + 10000;
+      const otpCode = Math.floor(Math.random() * 900000) + 100000;
+
+      await this.prisma.user.update({
+        where: {
+          id: findUser.id,
+        },
+        data: {
+          otp: otpCode,
+          isUsed: false,
+        },
+      });
 
       return {
         otpCode: otpCode,
