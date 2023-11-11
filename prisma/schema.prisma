@@ -17,7 +17,7 @@ model User {
   phone           String?
   otp             Int?
   isUsed          Boolean           @default(false)
-  password        String
+  password        String?
   role            USER_ROLE         @default(END_USER)
   status          USER_STATUS       @default(ACTIVE)
   invitaionStatus INVITATION_STATUS @default(PENDING)

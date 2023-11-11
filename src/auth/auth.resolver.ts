@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { UserModel } from 'src/models/user.model';
 import {
   LoginUserInput,
+  OTPVerifyInput,
   OtpRequestInput,
   RegisterUserInput,
   UpdateUserInput,
@@ -28,6 +29,11 @@ export class AuthResolver {
     @Args('otp') otp: OtpRequestInput,
   ): Promise<OtpResponse | string> {
     return this.authService.requestOtp(otp);
+  }
+
+  @Mutation(() => RegisterUserResponse)
+  async VerifyOTP(@Args('dto') dto: OTPVerifyInput) {
+    return this.authService.verifyOtp(dto);
   }
 
   @Mutation(() => UserModel)

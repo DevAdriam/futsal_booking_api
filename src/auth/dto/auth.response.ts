@@ -10,14 +10,20 @@ export class RegisterUserResponse {
   @Field(() => String)
   username: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   email: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   phone: string;
 
   @Field(() => String)
   role: USER_ROLE;
+
+  @Field(() => Number)
+  otp: number;
+
+  @Field(() => Boolean)
+  isUsed: boolean;
 
   @Field(() => String)
   status: USER_STATUS;

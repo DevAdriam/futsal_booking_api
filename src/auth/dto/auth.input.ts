@@ -6,13 +6,13 @@ export class RegisterUserInput {
   @Field(() => String)
   username: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   email: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   phone: string;
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   password: string;
 }
 
@@ -32,6 +32,15 @@ export class LoginUserInput {
 export class OtpRequestInput {
   @Field(() => String)
   phone: string;
+}
+
+@InputType()
+export class OTPVerifyInput {
+  @Field(() => String)
+  phone: string;
+
+  @Field(() => Number)
+  otp: number;
 }
 
 @InputType()

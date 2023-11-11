@@ -24,9 +24,15 @@ type Mutation {
   RegisterUser(dto: RegisterUserInput!): UserModel!
   RequestOtp(otp: OtpRequestInput!): OtpResponse!
   UpdateUser(dto: UpdateUserInput!): UpdateUserResponse!
+  VerifyOTP(dto: OTPVerifyInput!): RegisterUserResponse!
   createStadium(createStadiumInput: CreateStadiumInput!): Stadium!
   removeStadium(id: Int!): Stadium!
   updateStadium(updateStadiumInput: UpdateStadiumInput!): Stadium!
+}
+
+input OTPVerifyInput {
+  otp: Float!
+  phone: String!
 }
 
 input OtpRequestInput {
@@ -44,17 +50,19 @@ type Query {
 
 """register user"""
 input RegisterUserInput {
-  email: String!
-  password: String!
-  phone: String!
+  email: String
+  password: String
+  phone: String
   username: String!
 }
 
 """register user response"""
 type RegisterUserResponse {
-  email: String!
+  email: String
   id: String!
-  phone: String!
+  isUsed: Boolean!
+  otp: Float!
+  phone: String
   refreshToken: String
   role: String!
   status: String!
@@ -85,6 +93,8 @@ input UpdateUserInput {
 type UpdateUserResponse {
   email: String
   id: String
+  isUsed: Boolean
+  otp: Float
   phone: String
   refreshToken: String
   role: String

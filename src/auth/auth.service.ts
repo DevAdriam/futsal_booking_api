@@ -13,6 +13,7 @@ import {
 import { PrismaService } from 'src/prisma.service';
 import {
   LoginUserInput,
+  OTPVerifyInput,
   OtpRequestInput,
   RegisterUserInput,
   UpdateUserInput,
@@ -47,12 +48,12 @@ export class AuthService {
     }
 
     try {
-      const hashPw = await bcrypt.hash(dto.password, SALT_ROUNDS);
       const newUser = await this.prisma.user.create({
         data: {
           username: dto.username,
           email: dto.email,
-          password: hashPw,
+          password:
+            dto.password && (await bcrypt.hash(dto.password, SALT_ROUNDS)),
           phone: dto.phone,
         },
       });
@@ -87,6 +88,48 @@ export class AuthService {
       return {
         otpCode: otpCode,
       };
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async verifyOtp(dto: OTPVerifyInput) {
+    try {
+      const user = await this.prisma.user.findFirstOrThrow({
+        where: {
+          phone: dto.phone,
+          status: 'ACTIVE',
+        },
+      });
+
+      // if (user.isUsed)
+      //   throw new UnauthorizedException('previous otp is unused!');
+
+      if (user.otp !== dto.otp) {
+        throw new UnauthorizedException('OTP is not valid');
+      }
+
+      // check is OTP still valid
+      const sendOtpTime = user.updatedAt.getTime();
+      const verifyOTpTime = new Date().getTime();
+      const TimeDifference = verifyOTpTime - sendOtpTime;
+      console.log(sendOtpTime, verifyOTpTime);
+      console.log(TimeDifference);
+
+      if (TimeDifference >= 60000) {
+        throw new UnauthorizedException('OTP is Expired!Please Try again!');
+      }
+
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          isUsed: true,
+        },
+      });
+
+      return updatedUser;
     } catch (err) {
       throw err;
     }
@@ -183,6 +226,8 @@ export class AuthService {
           select: {
             email: true,
             username: true,
+            otp: true,
+            isUsed: true,
             phone: true,
             role: true,
             status: true,
