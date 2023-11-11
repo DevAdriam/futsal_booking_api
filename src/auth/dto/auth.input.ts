@@ -9,14 +9,20 @@ export class RegisterUserInput {
   @Field(() => String)
   email: string;
 
+  @Field(() => Number)
+  phone: number;
+
   @Field(() => String)
   password: string;
 }
 
 @InputType()
 export class LoginUserInput {
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   email: string;
+
+  @Field(() => Number, { nullable: true })
+  phone: number;
 
   @Field(() => String)
   password: string;

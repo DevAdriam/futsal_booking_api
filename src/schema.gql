@@ -2,6 +2,11 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CreateStadiumInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 input LoginUserInput {
   email: String!
   password: String!
@@ -17,10 +22,14 @@ type Mutation {
   LoginUser(dto: LoginUserInput!): LoginUserResponse!
   RegisterUser(dto: RegisterUserInput!): UserModel!
   UpdateUser(dto: UpdateUserInput!): UpdateUserResponse!
+  createStadium(createStadiumInput: CreateStadiumInput!): Stadium!
+  removeStadium(id: Int!): Stadium!
+  updateStadium(updateStadiumInput: UpdateStadiumInput!): Stadium!
 }
 
 type Query {
   getAllUsers: [RegisterUserResponse!]!
+  stadium(id: Int!): Stadium!
 }
 
 """register user"""
@@ -38,6 +47,17 @@ type RegisterUserResponse {
   role: String!
   status: String!
   username: String!
+}
+
+type Stadium {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateStadiumInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
 }
 
 input UpdateUserInput {

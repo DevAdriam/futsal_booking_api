@@ -35,16 +35,19 @@ export class AuthService {
     }
 
     try {
-      const { username, email, password } = dto;
-      if (!username || !email || !password) throw new BadRequestException();
+      const { username, email, password, phone } = dto;
+      if (!username || !email || !password || !phone)
+        throw new BadRequestException();
 
       const hashPw = await bcrypt.hash(password, SALT_ROUNDS);
-      console.log(hashPw);
       const newUser = await this.prisma.user.create({
         data: {
           username: dto.username,
           email: dto.email,
           password: hashPw,
+          phone: dto.phone,
+          otp: 123456,
+          isUsed: true,
         },
       });
 
@@ -54,18 +57,45 @@ export class AuthService {
     }
   }
 
+  async requestOtp(phone: number) {
+    const findUser = await this.prisma.user.findFirst({
+      where: {
+        phone: phone,
+      },
+    });
+
+    if (!findUser) throw new UnauthorizedException('user not found');
+
+    const otpCode = Math.floor(Math.random() * 90000) + 10000;
+
+    return otpCode;
+  }
+
   async login(dto: LoginUserInput): Promise<LoginUserResponse> {
     try {
-      const { email, password } = dto;
+      const { email, password, phone } = dto;
 
-      const isUserExist = await this.prisma.user.findUnique({
+      const isUserExist = await this.prisma.user.findFirst({
         where: {
-          status: 'ACTIVE',
-          email: email,
+          AND: [
+            {
+              status: 'ACTIVE',
+            },
+          ],
+          OR: [
+            {
+              phone: phone,
+            },
+            {
+              email: email,
+            },
+          ],
         },
       });
+
       if (!isUserExist) throw new UnauthorizedException('wrong credentials');
 
+      //check credentials
       const isPwMatch = await bcrypt.compare(password, isUserExist.password);
       if (!isPwMatch) throw new UnauthorizedException('Credentials not valid');
 
@@ -132,6 +162,7 @@ export class AuthService {
           select: {
             email: true,
             username: true,
+            phone: true,
             role: true,
             status: true,
             id: true,

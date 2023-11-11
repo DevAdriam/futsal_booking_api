@@ -13,6 +13,9 @@ export class RegisterUserResponse {
   @Field(() => String)
   email: string;
 
+  @Field(() => Number)
+  phone: number;
+
   @Field(() => String)
   role: USER_ROLE;
 
