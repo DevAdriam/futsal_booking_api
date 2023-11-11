@@ -13,8 +13,8 @@ export class RegisterUserResponse {
   @Field(() => String)
   email: string;
 
-  @Field(() => Number)
-  phone: number;
+  @Field(() => String)
+  phone: string;
 
   @Field(() => String)
   role: USER_ROLE;
@@ -26,10 +26,6 @@ export class RegisterUserResponse {
   refreshToken: string;
 }
 
-interface Tokens {
-  accessToken: string;
-  refreshToken: string;
-}
 @ObjectType()
 export class LoginUserResponse {
   @Field(() => UserModel)
@@ -40,6 +36,12 @@ export class LoginUserResponse {
 
   @Field(() => String)
   refreshToken: string;
+}
+
+@ObjectType()
+export class OtpResponse {
+  @Field(() => Number)
+  otpCode: number;
 }
 
 @ObjectType()

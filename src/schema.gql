@@ -8,8 +8,9 @@ input CreateStadiumInput {
 }
 
 input LoginUserInput {
-  email: String!
+  email: String
   password: String!
+  phone: String
 }
 
 type LoginUserResponse {
@@ -21,10 +22,19 @@ type LoginUserResponse {
 type Mutation {
   LoginUser(dto: LoginUserInput!): LoginUserResponse!
   RegisterUser(dto: RegisterUserInput!): UserModel!
+  RequestOtp(otp: OtpRequestInput!): OtpResponse!
   UpdateUser(dto: UpdateUserInput!): UpdateUserResponse!
   createStadium(createStadiumInput: CreateStadiumInput!): Stadium!
   removeStadium(id: Int!): Stadium!
   updateStadium(updateStadiumInput: UpdateStadiumInput!): Stadium!
+}
+
+input OtpRequestInput {
+  phone: String!
+}
+
+type OtpResponse {
+  otpCode: Float!
 }
 
 type Query {
@@ -36,6 +46,7 @@ type Query {
 input RegisterUserInput {
   email: String!
   password: String!
+  phone: String!
   username: String!
 }
 
@@ -43,6 +54,7 @@ input RegisterUserInput {
 type RegisterUserResponse {
   email: String!
   id: String!
+  phone: String!
   refreshToken: String
   role: String!
   status: String!
@@ -64,6 +76,7 @@ input UpdateUserInput {
   email: String
   id: String!
   password: String
+  phone: String
   role: String!
   status: String!
   username: String
@@ -72,6 +85,7 @@ input UpdateUserInput {
 type UpdateUserResponse {
   email: String
   id: String
+  phone: String
   refreshToken: String
   role: String
   status: String

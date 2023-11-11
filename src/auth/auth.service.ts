@@ -5,10 +5,15 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { LoginUserResponse, RegisterUserResponse } from './dto/auth.response';
+import {
+  LoginUserResponse,
+  OtpResponse,
+  RegisterUserResponse,
+} from './dto/auth.response';
 import { PrismaService } from 'src/prisma.service';
 import {
   LoginUserInput,
+  OtpRequestInput,
   RegisterUserInput,
   UpdateUserInput,
 } from './dto/auth.input';
@@ -57,18 +62,23 @@ export class AuthService {
     }
   }
 
-  async requestOtp(phone: number) {
-    const findUser = await this.prisma.user.findFirst({
-      where: {
-        phone: phone,
-      },
-    });
+  async requestOtp(dto: OtpRequestInput): Promise<OtpResponse> {
+    try {
+      const findUser = await this.prisma.user.findFirst({
+        where: {
+          phone: dto.phone,
+        },
+      });
 
-    if (!findUser) throw new UnauthorizedException('user not found');
+      if (!findUser) throw new UnauthorizedException('user not found');
+      const otpCode = Math.floor(Math.random() * 90000) + 10000;
 
-    const otpCode = Math.floor(Math.random() * 90000) + 10000;
-
-    return otpCode;
+      return {
+        otpCode: otpCode,
+      };
+    } catch (err) {
+      throw err;
+    }
   }
 
   async login(dto: LoginUserInput): Promise<LoginUserResponse> {

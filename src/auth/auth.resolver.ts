@@ -3,11 +3,13 @@ import { AuthService } from './auth.service';
 import { UserModel } from 'src/models/user.model';
 import {
   LoginUserInput,
+  OtpRequestInput,
   RegisterUserInput,
   UpdateUserInput,
 } from './dto/auth.input';
 import {
   LoginUserResponse,
+  OtpResponse,
   RegisterUserResponse,
   UpdateUserResponse,
 } from './dto/auth.response';
@@ -19,6 +21,13 @@ export class AuthResolver {
   @Query(() => [RegisterUserResponse])
   async getAllUsers(): Promise<RegisterUserResponse[] | []> {
     return this.authService.getAll();
+  }
+
+  @Mutation(() => OtpResponse)
+  async RequestOtp(
+    @Args('otp') otp: OtpRequestInput,
+  ): Promise<OtpResponse | string> {
+    return this.authService.requestOtp(otp);
   }
 
   @Mutation(() => UserModel)
