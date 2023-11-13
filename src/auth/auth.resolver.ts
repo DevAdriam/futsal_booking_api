@@ -2,6 +2,7 @@ import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { UserModel } from 'src/models/user.model';
 import {
+  CreatePasswordInput,
   LoginUserInput,
   OTPVerifyInput,
   OtpRequestInput,
@@ -44,6 +45,11 @@ export class AuthResolver {
   @Mutation(() => LoginUserResponse)
   async LoginUser(@Args('dto') dto: LoginUserInput) {
     return this.authService.login(dto);
+  }
+
+  @Mutation(() => RegisterUserResponse)
+  async passwordCreate(@Args('dto') dto: CreatePasswordInput) {
+    return this.authService.createPassword(dto);
   }
 
   @Mutation(() => UpdateUserResponse)

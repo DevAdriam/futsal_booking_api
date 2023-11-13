@@ -12,6 +12,7 @@ import {
 } from './dto/auth.response';
 import { PrismaService } from 'src/prisma.service';
 import {
+  CreatePasswordInput,
   LoginUserInput,
   OTPVerifyInput,
   OtpRequestInput,
@@ -265,6 +266,51 @@ export class AuthService {
       });
 
       return updatedUser;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async createPassword(dto: CreatePasswordInput) {
+    try {
+      const findUser = await this.prisma.user.findFirst({
+        where: {
+          phone: dto.phone,
+        },
+      });
+
+      if (!findUser)
+        throw new HttpException(
+          {
+            message: 'User does not exist',
+            devMessage: 'User does not exist',
+          },
+          404,
+        );
+
+      // check if OTP is verified
+      if (findUser.otp === dto.otp && findUser.isUsed) {
+        const hashPw: string = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
+
+        const updatedUser = await this.prisma.user.update({
+          where: {
+            id: findUser.id,
+          },
+          data: {
+            password: hashPw,
+          },
+        });
+
+        return updatedUser;
+      } else {
+        throw new HttpException(
+          {
+            message: 'OTP is not valid',
+            devMessage: 'OTP is not valid',
+          },
+          401,
+        );
+      }
     } catch (err) {
       throw err;
     }

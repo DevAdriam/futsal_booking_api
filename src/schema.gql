@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CreatePasswordInput {
+  newPassword: String!
+  otp: Float!
+  phone: String!
+}
+
 input CreateStadiumInput {
   """Example field (placeholder)"""
   exampleField: Int!
@@ -26,6 +32,7 @@ type Mutation {
   UpdateUser(dto: UpdateUserInput!): UpdateUserResponse!
   VerifyOTP(dto: OTPVerifyInput!): RegisterUserResponse!
   createStadium(createStadiumInput: CreateStadiumInput!): Stadium!
+  passwordCreate(dto: CreatePasswordInput!): RegisterUserResponse!
   removeStadium(id: Int!): Stadium!
   updateStadium(updateStadiumInput: UpdateStadiumInput!): Stadium!
 }

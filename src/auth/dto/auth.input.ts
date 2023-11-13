@@ -44,6 +44,18 @@ export class OTPVerifyInput {
 }
 
 @InputType()
+export class CreatePasswordInput {
+  @Field(() => String)
+  phone: string;
+
+  @Field(() => Number)
+  otp: number;
+
+  @Field(() => String)
+  newPassword: string;
+}
+
+@InputType()
 export class UpdateUserInput extends PartialType(RegisterUserInput) {
   @Field(() => String)
   id: string;
