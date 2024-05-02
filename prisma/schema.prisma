@@ -14,8 +14,8 @@ model User {
   id              String            @id @default(uuid())
   username        String
   email           String?           @unique
-  phone           String?
-  otp             Int?
+  phone           String?           @unique
+  otp             Otp?               
   isUsed          Boolean           @default(false)
   password        String?
   role            USER_ROLE         @default(END_USER)
@@ -28,6 +28,19 @@ model User {
   userOnTeam UserOnTeam?
 
   @@map("users")
+}
+
+model Otp {
+  id              String            @id @default(uuid())
+  userId          String @unique
+  user            User    @relation(fields: [userId],references: [id],onDelete: Cascade)
+  code            Int 
+  isExpired     Boolean      @default(false)  @map("is_expired")
+  isUsed        Boolean      @default(false)  @map("is_used")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt() @map("updated_at")
+
+  @@map("otp")
 }
 
 model Team {
@@ -66,6 +79,7 @@ model FutsalStadium {
 
   @@map("futsal_stadium")
 }
+
 
 model BookingRecord {
   id           String         @id @default(uuid())

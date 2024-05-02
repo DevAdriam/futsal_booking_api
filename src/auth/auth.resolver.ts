@@ -48,8 +48,8 @@ export class AuthResolver {
   }
 
   @Mutation(() => RegisterUserResponse)
-  async passwordCreate(@Args('dto') dto: CreatePasswordInput) {
-    return this.authService.createPassword(dto);
+  async updatePassword(@Args('dto') dto: CreatePasswordInput) {
+    return this.authService.updatePassword(dto);
   }
 
   @Mutation(() => UpdateUserResponse)

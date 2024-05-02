@@ -11,9 +11,6 @@ export class RegisterUserInput {
 
   @Field(() => String, { nullable: true })
   phone: string;
-
-  @Field(() => String, { nullable: true })
-  password: string;
 }
 
 @InputType()

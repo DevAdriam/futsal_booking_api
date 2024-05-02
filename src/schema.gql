@@ -22,7 +22,6 @@ input LoginUserInput {
 type LoginUserResponse {
   accessToken: String!
   refreshToken: String!
-  user: UserModel!
 }
 
 type Mutation {
@@ -32,8 +31,8 @@ type Mutation {
   UpdateUser(dto: UpdateUserInput!): UpdateUserResponse!
   VerifyOTP(dto: OTPVerifyInput!): RegisterUserResponse!
   createStadium(createStadiumInput: CreateStadiumInput!): Stadium!
-  passwordCreate(dto: CreatePasswordInput!): RegisterUserResponse!
   removeStadium(id: Int!): Stadium!
+  updatePassword(dto: CreatePasswordInput!): RegisterUserResponse!
   updateStadium(updateStadiumInput: UpdateStadiumInput!): Stadium!
 }
 
@@ -58,7 +57,6 @@ type Query {
 """register user"""
 input RegisterUserInput {
   email: String
-  password: String
   phone: String
   username: String!
 }
@@ -68,7 +66,7 @@ type RegisterUserResponse {
   email: String
   id: String!
   isUsed: Boolean!
-  otp: Float!
+  otp: otpModel!
   phone: String
   refreshToken: String
   role: String!
@@ -90,7 +88,6 @@ input UpdateStadiumInput {
 input UpdateUserInput {
   email: String
   id: String!
-  password: String
   phone: String
   role: String!
   status: String!
@@ -101,7 +98,7 @@ type UpdateUserResponse {
   email: String
   id: String
   isUsed: Boolean
-  otp: Float
+  otp: otpModel
   phone: String
   refreshToken: String
   role: String
@@ -109,8 +106,21 @@ type UpdateUserResponse {
   username: String
 }
 
+"""user model"""
 type UserModel {
   email: String!
   id: ID!
+  isUsed: Boolean!
+  otp: otpModel!
+  phone: String!
   username: String!
+}
+
+"""OTP model for user"""
+type otpModel {
+  code: String!
+  id: ID!
+  isExpired: Boolean!
+  isUsed: Boolean!
+  userId: String!
 }

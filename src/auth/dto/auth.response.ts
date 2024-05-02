@@ -1,6 +1,6 @@
 import { Field, ObjectType, PartialType } from '@nestjs/graphql';
 import { USER_ROLE, USER_STATUS } from '@prisma/client';
-import { UserModel } from 'src/models/user.model';
+import { otpModel, UserModel } from 'src/models/user.model';
 
 @ObjectType({ description: 'register user response' })
 export class RegisterUserResponse {
@@ -19,8 +19,8 @@ export class RegisterUserResponse {
   @Field(() => String)
   role: USER_ROLE;
 
-  @Field(() => Number)
-  otp: number;
+  @Field(() => otpModel)
+  otp: otpModel;
 
   @Field(() => Boolean)
   isUsed: boolean;
@@ -34,9 +34,6 @@ export class RegisterUserResponse {
 
 @ObjectType()
 export class LoginUserResponse {
-  @Field(() => UserModel)
-  user: UserModel;
-
   @Field(() => String)
   accessToken: string;
 

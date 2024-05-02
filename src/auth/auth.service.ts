@@ -21,7 +21,6 @@ import {
 } from './dto/auth.input';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { UserModel } from 'src/models/user.model';
 
 const SALT_ROUNDS = 10;
 @Injectable()
@@ -52,10 +51,10 @@ export class AuthService {
       const newUser = await this.prisma.user.create({
         data: {
           username: dto.username,
-          email: dto.email,
-          password:
-            dto.password && (await bcrypt.hash(dto.password, SALT_ROUNDS)),
-          phone: dto.phone,
+          email: dto.email && dto.email,
+          // password:
+          //   dto.password && (await bcrypt.hash(dto.password, SALT_ROUNDS)),
+          phone: dto.phone && dto.phone,
         },
       });
 
@@ -73,16 +72,22 @@ export class AuthService {
         },
       });
 
+      console.log('found user', findUser);
+      console.log(await this.prisma.user.findMany());
+
       if (!findUser) throw new UnauthorizedException('user not found');
       const otpCode = Math.floor(Math.random() * 900000) + 100000;
 
-      await this.prisma.user.update({
+      await this.prisma.otp.upsert({
         where: {
           id: findUser.id,
         },
-        data: {
-          otp: otpCode,
-          isUsed: false,
+        create: {
+          code: otpCode,
+          userId: findUser.id,
+        },
+        update: {
+          code: otpCode,
         },
       });
 
@@ -94,32 +99,57 @@ export class AuthService {
     }
   }
 
+  async otpValidCheck(code: number, userId: string) {
+    const otp = await this.prisma.otp.findUnique({
+      where: {
+        userId,
+      },
+    });
+
+    if (+otp.code !== code) {
+      throw new HttpException(
+        {
+          message: 'Wrong OTP Code ',
+          devMessage: 'Wrong OTP Code',
+        },
+        400,
+      );
+    }
+
+    const sendOtpTime = otp.updatedAt.getTime();
+    const verifyOTpTime = new Date().getTime();
+    const TimeDifference = verifyOTpTime - sendOtpTime;
+
+    if (TimeDifference >= 60000) {
+      await this.prisma.otp.update({
+        where: {
+          id: otp.id,
+        },
+        data: {
+          isExpired: true,
+        },
+      });
+
+      throw new HttpException(
+        {
+          message: 'OTP is Expired',
+          devMessage: 'OTP is Expired',
+        },
+        400,
+      );
+    }
+  }
+
   async verifyOtp(dto: OTPVerifyInput) {
     try {
-      const user = await this.prisma.user.findFirstOrThrow({
+      const user = await this.prisma.user.findFirst({
         where: {
           phone: dto.phone,
           status: 'ACTIVE',
         },
       });
 
-      // if (user.isUsed)
-      //   throw new UnauthorizedException('previous otp is unused!');
-
-      if (user.otp !== dto.otp) {
-        throw new UnauthorizedException('OTP is not valid');
-      }
-
-      // check is OTP still valid
-      const sendOtpTime = user.updatedAt.getTime();
-      const verifyOTpTime = new Date().getTime();
-      const TimeDifference = verifyOTpTime - sendOtpTime;
-      console.log(sendOtpTime, verifyOTpTime);
-      console.log(TimeDifference);
-
-      if (TimeDifference >= 60000) {
-        throw new UnauthorizedException('OTP is Expired!Please Try again!');
-      }
+      await this.otpValidCheck(dto.otp, user.id);
 
       const updatedUser = await this.prisma.user.update({
         where: {
@@ -162,7 +192,8 @@ export class AuthService {
 
       //check credentials
       const isPwMatch = await bcrypt.compare(password, isUserExist.password);
-      if (!isPwMatch) throw new UnauthorizedException('Credentials not valid');
+      if (!isPwMatch)
+        throw new UnauthorizedException('Credentials are not valid');
 
       const tokens: { accessToken: string; refreshToken: string } =
         await this.generateTokens({
@@ -181,7 +212,6 @@ export class AuthService {
       });
 
       return {
-        user: updateUser,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
       };
@@ -271,11 +301,14 @@ export class AuthService {
     }
   }
 
-  async createPassword(dto: CreatePasswordInput) {
+  async updatePassword(dto: CreatePasswordInput) {
     try {
       const findUser = await this.prisma.user.findFirst({
         where: {
           phone: dto.phone,
+        },
+        include: {
+          otp: true,
         },
       });
 
@@ -288,29 +321,27 @@ export class AuthService {
           404,
         );
 
-      // check if OTP is verified
-      if (findUser.otp === dto.otp && findUser.isUsed) {
-        const hashPw: string = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
-
-        const updatedUser = await this.prisma.user.update({
-          where: {
-            id: findUser.id,
-          },
-          data: {
-            password: hashPw,
-          },
-        });
-
-        return updatedUser;
-      } else {
+      if (findUser.otp.isExpired && !findUser.otp.isUsed) {
         throw new HttpException(
           {
-            message: 'OTP is not valid',
-            devMessage: 'OTP is not valid',
+            message: 'Invalid OTP code',
+            devMessage: 'Invalid OTP code',
           },
-          401,
+          400,
         );
       }
+      const hashPw: string = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
+
+      const updatedUser = await this.prisma.user.update({
+        where: {
+          id: findUser.id,
+        },
+        data: {
+          password: hashPw,
+        },
+      });
+
+      return updatedUser;
     } catch (err) {
       throw err;
     }
